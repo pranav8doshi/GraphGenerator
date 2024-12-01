@@ -87,7 +87,7 @@ def index():
                     df = extract_csv_as_df(file)
 
                     # Render template with dropdowns populated with column names
-                    return render_template('GraphGenerator.html', columns=df.columns.tolist(), graph_image=None)
+                    return render_template('index.html', columns=df.columns.tolist(), graph_image=None)
 
                 except Exception as e:
                     return f"Error: {str(e)}", 500
@@ -102,7 +102,7 @@ def index():
                 # Validate the columns
                 error, suggestion = validate_columns(x_axis, y_axis, df)
                 if error:
-                    return render_template('GraphGenerator.html', columns=df.columns.tolist(), error_message=error, suggestion=suggestion, graph_image=None)
+                    return render_template('index.html', columns=df.columns.tolist(), error_message=error, suggestion=suggestion, graph_image=None)
 
                 # Generate the graph based on the selected options
                 img = generate_graph(df, chart_type, x_axis, y_axis)
@@ -110,13 +110,10 @@ def index():
                 # Convert the image to base64 to pass to the template
                 graph_image = base64.b64encode(img.getvalue()).decode('utf-8')
 
-                return render_template('GraphGenerator.html', columns=df.columns.tolist(), graph_image=graph_image, error_message=None, suggestion=None)
+                return render_template('index.html', columns=df.columns.tolist(), graph_image=graph_image, error_message=None, suggestion=None)
 
             except Exception as e:
                 return f"Error: {str(e)}", 500
 
     # If no file uploaded or no graph generated yet
-    return render_template('GraphGenerator.html', columns=None, graph_image=None)
-
-if __name__ == "__main__":
-    app.run(debug=True)
+    return render_template('index.html', columns=None, graph_image=None)
