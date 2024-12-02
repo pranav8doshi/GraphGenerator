@@ -1,3 +1,6 @@
-Flask==3.0.3           # Flask for web application development
-pandas==2.1.1          # pandas for CSV file manipulation
-matplotlib==3.8.0      # matplotlib for graph generation
+Flask==2.2.2
+Werkzeug==2.2.2
+pandas==1.5.3
+plotly==5.14.0
+openpyxl==3.1.2 
+requests==2.28.2 

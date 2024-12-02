@@ -1,241 +1,267 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Graph Generator</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
         body {
-            background: linear-gradient(135deg, #000000, #1a1a1a);
-            color: white;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #121212;
+            color: #ffffff;
+            font-family: 'Roboto', sans-serif;
             margin: 0;
-            padding: 5px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            box-sizing: border-box;
-        }
-
-        h1 {
-            color: #4caf50;
-            font-size: 2rem;
-            margin-bottom: 20px;
-            text-align: center;
-            width: 100%;
+            padding: 0;
         }
 
         .container {
-            display: flex;
-            justify-content: space-between;
-            width: 100%;
-            gap: 10px;
-            flex-wrap: wrap;
+            margin-top: 50px;
         }
 
-        .left-column, .right-column {
-            background-color: #111;
-            padding: 15px;
-            border-radius: 10px;
-            box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.4);
-            width: 45%;
-            box-sizing: border-box;
+        .graph-container {
+            height: 500px;
+            background: linear-gradient(135deg, #1e1e1e, #2c2c2c);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.5);
         }
 
-        .left-column {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+        .form-container {
+            background: #1e1e1e;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
         }
 
-        .right-column {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
-        label {
-            display: block;
-            font-size: 1rem;
-            margin: 5px 0;
-            color: #ccc;
-        }
-
-        select, input[type="file"], button {
-            padding: 8px;
-            margin: 5px 0;
+        .btn-primary {
+            background-color: #6200ea;
             border: none;
-            border-radius: 5px;
-            font-size: 0.9rem;
-            width: 100%;
-            background-color: #333;
-            color: #ccc;
+            font-weight: 500;
+            transition: all 0.3s ease;
         }
 
+        .btn-primary:hover {
+            background-color: #3700b3;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(98, 0, 234, 0.5);
+        }
+
+        select,
+        input,
         button {
-            background-color: #4caf50;
-            color: black;
-            cursor: pointer;
+            color: #ffffff;
+            background-color: #1e1e1e;
+            border: 1px solid #6200ea;
+            border-radius: 5px;
+        }
+
+        select:focus,
+        input:focus,
+        button:focus {
+            outline: none;
+            box-shadow: 0 0 8px #6200ea;
+        }
+
+        h4,
+        h2 {
+            font-weight: 500;
+            margin-bottom: 20px;
+        }
+
+        .form-label {
             font-size: 1rem;
-            transition: background-color 0.3s ease;
-            box-shadow: 0px 4px 8px rgba(0, 255, 204, 0.4);
-        }
-
-        button:hover {
-            background-color: #009999;
-            box-shadow: 0px 4px 15px rgba(0, 255, 204, 0.7);
-        }
-
-        input[type="file"] {
-            background-color: #222;
-            color: #ccc;
-        }
-
-        hr {
-            border: 1px solid #4caf50;
-            width: 90%;
-            margin: 20px auto;
-        }
-
-        p {
-            color: #ccc;
         }
 
         .graph-container {
             width: 100%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            /* Reduce the width by 5% */
+            height: 100%;
+            max-width: 102%;
+            max-height: 600px;
             overflow: hidden;
-        }
+            /* Prevent overflow */
+            position: relative;
+            /* Keeps the plot inside the container */
+            padding: 0%;
+            /* Optional padding */
+            border-radius: 10px;
+            
 
-        img {
-            max-width: 100%;
-            height: auto;
-        }
-
-        /* Responsive adjustments */
-        @media (max-width: 1024px) {
-            .container {
-                flex-direction: column;
-                width: 100%;
-            }
-
-            .left-column, .right-column {
-                width: 100%;
-                margin-bottom: 20px;
-            }
-
-            h1 {
-                font-size: 1.8rem;
-            }
         }
 
         @media (max-width: 768px) {
-            body {
+            .container {
+                margin-top: 20px;
+            }
+
+            .graph-container {
+                height: 400px;
+            }
+
+            .form-container {
+                padding: 15px;
+            }
+
+            h4,
+            h2 {
+                font-size: 1.2rem;
+            }
+
+            .btn-primary {
+                font-size: 0.9rem;
                 padding: 10px;
             }
 
-            .container {
-                width: 100%;
-            }
-
-            h1 {
-                font-size: 1.6rem;
-            }
-
-            label {
+            select,
+            input {
                 font-size: 0.9rem;
-            }
-
-            button {
-                font-size: 0.9rem;
-            }
-
-            select, input[type="file"] {
-                font-size: 0.8rem;
             }
         }
 
-        @media (max-width: 480px) {
-            body {
-                padding: 5px;
+        @media (max-width: 576px) {
+            .graph-container {
+                height: 300px;
+                padding: 10px;
             }
 
-            h1 {
-                font-size: 1.4rem;
+            h4,
+            h2 {
+                font-size: 1rem;
             }
 
-            button {
+            .btn-primary {
+                font-size: 0.8rem;
+                padding: 8px;
+            }
+
+            select,
+            input {
                 font-size: 0.8rem;
             }
 
-            select, input[type="file"] {
-                font-size: 0.75rem;
-            }
+
+
         }
     </style>
 </head>
+
 <body>
     <div class="container">
-        <!-- Left Column -->
-        <div class="left-column">
-            <h1>Graph Generator</h1>
-            <form method="POST" enctype="multipart/form-data">
-                <label for="file">Upload CSV:</label>
-                <input type="file" name="file" id="file" required><br><br>
-                <button type="submit">Upload CSV</button>
-            </form>
-
-            {% if columns %}
-            <hr>
-            <form method="POST">
-                <label for="x_axis">X-axis:</label>
-                <select name="x_axis" id="x_axis">
-                    {% for col in columns %}
-                    <option value="{{ col }}">{{ col }}</option>
-                    {% endfor %}
-                </select><br><br>
-
-                <label for="y_axis">Y-axis:</label>
-                <select name="y_axis" id="y_axis">
-                    {% for col in columns %}
-                    <option value="{{ col }}">{{ col }}</option>
-                    {% endfor %}
-                </select><br><br>
-
-                <label for="chart_type">Chart Type:</label>
-                <select name="chart_type" id="chart_type">
-                    <option value="bar">Bar</option>
-                    <option value="line">Line</option>
-                    <!-- <option value="pie">Pie</option> -->
-                    <option value="scatter">Scatter</option>
-                </select><br><br>
-
-                <button type="submit">Generate Graph</button>
-            </form>
-            {% endif %}
-
-            {% if error_message %}
-            <p style="color: red;">{{ error_message }}</p>
-            {% endif %}
-
-            {% if suggestion %}
-            <p style="color: blue;">{{ suggestion }}</p>
-            {% endif %}
-        </div>
-
-        <!-- Right Column for Graph -->
-        <div class="right-column">
-            {% if graph_image %}
-            <div class="graph-container">
-                <img src="data:image/png;base64,{{ graph_image }}" alt="Generated Graph">
+        <div class="row gy-4">
+            <div class="col-md-4">
+                <div class="form-container">
+                    <h2>Graph Generator</h2>
+                    <form id="upload-form">
+                        <input type="file" id="file-input" class="form-control mb-3" accept=".xlsx">
+                        <button type="submit" class="btn btn-primary w-100">Upload</button>
+                    </form>
+                    <div id="options" class="mt-4" style="display:none;">
+                        <h4>Graph Options</h4>
+                        <label for="x-axis" class="form-label">X-Axis:</label>
+                        <select id="x-axis" class="form-select mb-3"></select>
+                        <label for="y-axis" class="form-label">Y-Axis:</label>
+                        <select id="y-axis" class="form-select mb-3"></select>
+                        <label for="graph-type" class="form-label">Graph Type:</label>
+                        <select id="graph-type" class="form-select mb-3">
+                            <option>Scatter Plot</option>
+                            <option>Line Chart</option>
+                            <option>Bar Chart</option>
+                            <option>Histogram</option>
+                            <option>Pie Chart</option>
+                            <option>Area Chart</option>
+                            <option>Bubble Chart</option>
+                            <option>Box Plot</option>
+                            <option>Treemap</option>
+                            <option>Heatmap</option>
+                            <option>Funnel Chart</option>
+                            <option>Sunburst Chart</option>
+                        </select>
+                        <button id="generate-graph" class="btn btn-primary w-100">Generate Graph</button>
+                    </div>
+                </div>
             </div>
-            {% else %}
-            <p>No graph generated yet.</p>
-            {% endif %}
+            <div class="col-md-8">
+                <div id="graph-container" class="graph-container"></div>
+            </div>
         </div>
     </div>
+
+    <script>
+        document.getElementById("upload-form").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const fileInput = document.getElementById("file-input");
+            if (!fileInput.files.length) return alert("Please upload an Excel file.");
+
+            const formData = new FormData();
+            formData.append("file", fileInput.files[0]);
+
+            const response = await fetch("/upload", {
+                method: "POST",
+                body: formData
+            });
+
+            const result = await response.json();
+            if (result.error) {
+                alert(result.error);
+            } else {
+                const xAxis = document.getElementById("x-axis");
+                const yAxis = document.getElementById("y-axis");
+                xAxis.innerHTML = yAxis.innerHTML = "";
+                result.columns.forEach(col => {
+                    xAxis.innerHTML += `<option value="${col}">${col}</option>`;
+                    yAxis.innerHTML += `<option value="${col}">${col}</option>`;
+                });
+                document.getElementById("options").style.display = "block";
+            }
+        });
+
+        document.getElementById("generate-graph").addEventListener("click", async () => {
+            const xAxis = document.getElementById("x-axis").value;
+            const yAxis = document.getElementById("y-axis").value;
+            const graphType = document.getElementById("graph-type").value;
+
+            const response = await fetch("/generate", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ x_axis: xAxis, y_axis: yAxis, graph_type: graphType })
+            });
+
+            const result = await response.json();
+            if (result.error) {
+                alert(result.error);
+            } else {
+                const graphContainer = document.getElementById("graph-container");
+                graphContainer.innerHTML = "";
+                // Adding responsive property to the layout
+                const layout = {
+                    autosize: true,
+                    responsive: true,  // Ensure responsiveness
+                    margin: {
+                        l: 40,  // Left margin
+                        r: 40,  // Right margin
+                        b: 40,  // Bottom margin
+                        t: 40   // Top margin
+                    },
+                    xaxis: {
+                        title: 'ORDERNUMBER',
+                    },
+                    yaxis: {
+                        title: 'ORDERNUMBER',
+                    },
+                    // Optional: Styling the graph's border (if needed directly)
+                    plot_bgcolor: '#1e1e1e',  // Set background color to match theme
+                    paper_bgcolor: '#1e1e1e', // Set the paper background color (around the graph)
+                    // No direct border for the plot but the container now has rounded borders
+                };
+
+
+                Plotly.newPlot(graphContainer, JSON.parse(result.graph).data, JSON.parse(result.graph).layout);
+            }
+        });
+    </script>
 </body>
+
 </html>

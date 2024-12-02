@@ -1,119 +1,76 @@
-from flask import Flask, render_template, request, Response
+from flask import Flask, render_template, request, jsonify
 import pandas as pd
-import os
-import matplotlib.pyplot as plt
-import io
-import base64
+import plotly
+import plotly.express as px
+import json
 
 app = Flask(__name__)
 
-# Global variable to store the dataframe
-df = None
+data = None  # To store the uploaded DataFrame globally
 
-# Function to extract data from CSV into a DataFrame
-def extract_csv_as_df(pathname: str) -> pd.DataFrame:
-    """Extracts the content of the CSV into a pandas DataFrame."""
-    return pd.read_csv(pathname)
 
-def validate_columns(x_axis: str, y_axis: str, df: pd.DataFrame):
-    """Validates the X-axis and Y-axis column names against the DataFrame."""
-    valid_columns = df.columns.tolist()
-    error = None
-    suggestion = None
-
-    if x_axis not in valid_columns:
-        error = f"Error: '{x_axis}' is not a valid column. "
-        suggestion = f"Did you mean one of these? {', '.join(valid_columns)}"
-    elif y_axis not in valid_columns:
-        error = f"Error: '{y_axis}' is not a valid column."
-        suggestion = f"Did you mean one of these? {', '.join(valid_columns)}"
-    
-    return error, suggestion
-
-def generate_graph(df: pd.DataFrame, chart_type: str, x_axis: str, y_axis: str) -> io.BytesIO:
-    """Generates a graph based on the user's query and returns it as a byte stream."""
-    try:
-        plt.figure(figsize=(10, 6))
-
-        if chart_type == 'bar':
-            plt.bar(df[x_axis], df[y_axis])
-            plt.xlabel(x_axis)
-            plt.ylabel(y_axis)
-            plt.title(f"{y_axis} by {x_axis}")
-
-        elif chart_type == 'line':
-            plt.plot(df[x_axis], df[y_axis], marker='o')
-            plt.xlabel(x_axis)
-            plt.ylabel(y_axis)
-            plt.title(f"{y_axis} over {x_axis}")
-
-        elif chart_type == 'pie':
-            plt.pie(df[y_axis], labels=df[x_axis], autopct='%1.1f%%')
-            plt.title(f"Pie chart of {y_axis}")
-
-        elif chart_type == 'scatter':
-            plt.scatter(df[x_axis], df[y_axis])
-            plt.xlabel(x_axis)
-            plt.ylabel(y_axis)
-            plt.title(f"Scatter Plot of {y_axis} vs {x_axis}")
-
-        plt.xticks(rotation=45, ha='right')
-        plt.tight_layout()
-
-        # Save the graph to a byte stream
-        img = io.BytesIO()
-        plt.savefig(img, format='png')
-        img.seek(0)
-        plt.close()
-
-        return img
-
-    except Exception as e:
-        return f"Error generating graph: {str(e)}"
-
-@app.route('/', methods=['GET', 'POST'])
+@app.route("/")
 def index():
-    global df
-    graph_image = None
-    if request.method == 'POST':
-        if 'file' in request.files:  # If a file is uploaded
-            file = request.files['file']
-            if file.filename == '':
-                return "Error: No selected file", 400
+    return render_template("index.html")
 
-            if file and file.filename.endswith('.csv'):
-                try:
-                    # Extract CSV content into the global dataframe
-                    df = extract_csv_as_df(file)
 
-                    # Render template with dropdowns populated with column names
-                    return render_template('index.html', columns=df.columns.tolist(), graph_image=None)
+@app.route("/upload", methods=["POST"])
+def upload():
+    global data
+    file = request.files.get("file")
+    if file:
+        data = pd.read_excel(file)
+        columns = list(data.columns)
+        return jsonify({"columns": columns})
+    return jsonify({"error": "File upload failed"}), 400
 
-                except Exception as e:
-                    return f"Error: {str(e)}", 500
 
-        elif df is not None and 'x_axis' in request.form and 'y_axis' in request.form:  # When options are selected
-            try:
-                # Retrieve the user's selected columns and chart type
-                x_axis = request.form.get('x_axis')
-                y_axis = request.form.get('y_axis')
-                chart_type = request.form.get('chart_type')
+@app.route("/generate", methods=["POST"])
+def generate():
+    global data
+    if data is None:
+        return jsonify({"error": "No data available"}), 400
 
-                # Validate the columns
-                error, suggestion = validate_columns(x_axis, y_axis, df)
-                if error:
-                    return render_template('index.html', columns=df.columns.tolist(), error_message=error, suggestion=suggestion, graph_image=None)
+    x_axis = request.json.get("x_axis")
+    y_axis = request.json.get("y_axis")
+    graph_type = request.json.get("graph_type")
 
-                # Generate the graph based on the selected options
-                img = generate_graph(df, chart_type, x_axis, y_axis)
+    if not x_axis or not graph_type:
+        return jsonify({"error": "X-axis and graph type are required"}), 400
 
-                # Convert the image to base64 to pass to the template
-                graph_image = base64.b64encode(img.getvalue()).decode('utf-8')
+    try:
+        if graph_type == "Scatter Plot":
+            fig = px.scatter(data, x=x_axis, y=y_axis, title="Scatter Plot")
+        elif graph_type == "Line Chart":
+            fig = px.line(data, x=x_axis, y=y_axis, title="Line Chart")
+        elif graph_type == "Bar Chart":
+            fig = px.bar(data, x=x_axis, y=y_axis, title="Bar Chart")
+        elif graph_type == "Histogram":
+            fig = px.histogram(data, x=x_axis, title="Histogram")
+        elif graph_type == "Pie Chart":
+            fig = px.pie(data, names=x_axis, values=y_axis, title="Pie Chart")
+        elif graph_type == "Area Chart":
+            fig = px.area(data, x=x_axis, y=y_axis, title="Area Chart")
+        elif graph_type == "Bubble Chart":
+            fig = px.scatter(data, x=x_axis, y=y_axis, size=y_axis, title="Bubble Chart")
+        elif graph_type == "Box Plot":
+            fig = px.box(data, x=x_axis, y=y_axis, title="Box Plot")
+        elif graph_type == "Treemap":
+            fig = px.treemap(data, path=[x_axis], values=y_axis, title="Treemap")
+        elif graph_type == "Heatmap":
+            fig = px.imshow(data.corr(), title="Heatmap", color_continuous_scale="Viridis")
+        elif graph_type == "Funnel Chart":
+            fig = px.funnel(data, x=x_axis, y=y_axis, title="Funnel Chart")
+        elif graph_type == "Sunburst Chart":
+            fig = px.sunburst(data, path=[x_axis], values=y_axis, title="Sunburst Chart")
+        else:
+            return jsonify({"error": "Invalid graph type"}), 400
 
-                return render_template('index.html', columns=df.columns.tolist(), graph_image=graph_image, error_message=None, suggestion=None)
+        graph_json = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
+        return jsonify({"graph": graph_json})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
-            except Exception as e:
-                return f"Error: {str(e)}", 500
 
-    # If no file uploaded or no graph generated yet
-    return render_template('index.html', columns=None, graph_image=None)
+if __name__ == "__main__":
+    app.run(debug=True)
